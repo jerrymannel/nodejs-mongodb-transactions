@@ -66,28 +66,6 @@ app.get('/userSet2', async(_req, _res) => {
     _res.json(users)
 })
 
-app.post('/userSet1/withouttxn', async(_req, _res) => {
-    console.log("POST /users/withouttxn")
-    console.log(_req.body)
-    let userCollection = db.collection("userSet1")
-    try {
-        _req.body.forEach(async _name => {
-            try {
-                await userCollection.insertOne({
-                    name: _name
-                })
-                console.log(`Added ${_name} into userSet1`)
-            } catch (e) {
-                console.log(e.message)
-            }
-        })
-    } catch (_err) {
-        console.log(_err.message)
-    }
-    let users = await userCollection.find({}).toArray()
-    _res.json(users)
-})
-
 app.post('/userSet1/withtxn', async(_req, _res) => {
     console.log("POST /userSet1/withtxn")
     console.log(_req.body)
@@ -95,55 +73,21 @@ app.post('/userSet1/withtxn', async(_req, _res) => {
     let errorFlag = false;
     try {
         session.startTransaction()
-        _req.body.forEach(async _name => {
-            try {
-                await userCollection.insertOne({
-                    name: _name
-                }, {
-                    session
-                })
-                console.log(`Added ${_name} into userSet1`)
-            } catch (e) {
-                errorFlag = true;
-                console.log(e.message)
-            }
+        await userCollection.insertOne({
+            name: _req.body.name
+        }, {
+            session
         })
-        if (errorFlag) await session.abortTransaction()
-        else await session.commitTransaction()
+        console.log(`Added ${_req.body.name} into userSet1`)
+        session.commitTransaction()
+        let users = await userCollection.find({}).toArray()
+        _res.json(users)
     } catch (_err) {
-        console.log(_err.message)
-    }
-    let users = await userCollection.find({}).toArray()
-    _res.json(users)
-})
-
-app.post('/userSet2/withtxn', async(_req, _res) => {
-    console.log("POST /userSet2/withtxn")
-    console.log(_req.body)
-    let userCollection = db.collection("userSet2")
-    let errorFlag = false;
-    try {
-        session.startTransaction()
-        _req.body.forEach(async _name => {
-            try {
-                await userCollection.insertOne({
-                    name: _name
-                }, {
-                    session
-                })
-                console.log(`Added ${_name} into userSet2`)
-            } catch (e) {
-                errorFlag = true;
-                console.log(e.message)
-            }
+        session.abortTransaction()
+        _res.status(400).json({
+            message: _err.message
         })
-        if (errorFlag) await session.abortTransaction()
-        else await session.commitTransaction()
-    } catch (_err) {
-        console.log(_err.message)
     }
-    let users = await userCollection.find({}).toArray()
-    _res.json(users)
 })
 
 app.post('/multiCollection', async(_req, _res) => {
@@ -154,33 +98,55 @@ app.post('/multiCollection', async(_req, _res) => {
     let errorFlag = false;
     try {
         session.startTransaction()
-        _req.body.forEach(async _name => {
-            try {
-                await userCollection1.insertOne({
-                    name: _name
-                }, {
-                    session
-                })
-                await userCollection2.insertOne({
-                    name: _name
-                }, {
-                    session
-                })
-                console.log(`Added ${_name} into userSet1`)
-                console.log(`Added ${_name} into userSet2`)
-            } catch (e) {
-                errorFlag = true;
-                console.log(e.message)
-            }
+        await userCollection1.insertOne({
+            name: _req.body.name
+        }, {
+            session
         })
-        if (errorFlag) await session.abortTransaction()
-        else await session.commitTransaction()
+        await userCollection2.insertOne({
+            name: _req.body.name
+        }, {
+            session
+        })
+        console.log(`Added ${_req.body.name} into userSet1`)
+        console.log(`Added ${_req.body.name} into userSet2`)
+        session.commitTransaction()
+        _res.json({
+            message: "Done"
+        })
     } catch (_err) {
         console.log(_err.message)
+        session.abortTransaction()
+        _res.status(400).json({
+            message: _err.message
+        })
     }
-    _res.json({
-        message: "Done"
-    })
+})
+
+app.post('/multiCollectionNoTxn', async(_req, _res) => {
+    console.log("POST /multiCollection")
+    console.log(_req.body)
+    let userCollection1 = db.collection("userSet1")
+    let userCollection2 = db.collection("userSet2")
+    let errorFlag = false;
+    try {
+        await userCollection2.insertOne({
+            name: _req.body.name
+        })
+        await userCollection1.insertOne({
+            name: _req.body.name
+        })
+        console.log(`Added ${_req.body.name} into userSet1`)
+        console.log(`Added ${_req.body.name} into userSet2`)
+        _res.json({
+            message: "Done"
+        })
+    } catch (_err) {
+        console.log(_err.message)
+        _res.status(400).json({
+            message: _err.message
+        })
+    }
 })
 
 app.listen(port, async() => {

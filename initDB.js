@@ -19,10 +19,6 @@ module.exports = async(_client, _db) => {
         col = _db.collection("userSet2")
         await clearCollection(col)
         await col.insertMany(data.init.userSet2)
-        await col.createIndex("name", {
-            unique: "true",
-            name: "UserNameIndex"
-        })
         count = await col.countDocuments({})
         console.log(`Inserted ${count} users into userSet2`)
     } catch (_err) {
