@@ -3,6 +3,11 @@ Exploring MongoDB transactions on Nodejs. This is just a collection of samples.
 
 # Setup
 
+## mongoDB
+
+Start mongoDB with `--replSet` option. This example uses replica set as `jerry`.
+
+## Collections
 * *DB name* : cbs (Core Banking System)
 * *Collections*:
   * userSet1
@@ -20,3 +25,4 @@ Exploring MongoDB transactions on Nodejs. This is just a collection of samples.
 | POST /userSet1 | Add new user under collection `userSet1`. Uses mongoDB transactons for a single document entry. Sample payload `{"name": "Geetha"}` |
 | POST /multiCollection | Use mongoDB transactions to add new user under collections `userSet1` and `userSet2`. Sample payload `{"name": "Faizal"}` |
 | POST /multiCollectionNoTxn | Add new user under collections `userSet1` and `userSet2` without any mongoDB transactions. Sample payload `{"name": "Geetha"}` |
+
